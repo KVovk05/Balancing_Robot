@@ -46,7 +46,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+I2C_HandleTypeDef i2c_data_bus;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
