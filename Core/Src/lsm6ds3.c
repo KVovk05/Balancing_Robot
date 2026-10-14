@@ -31,3 +31,12 @@ void Imu_Read(I2C_HandleTypeDef* i2c_data_bus, LSM6DS3_Data_t* imu_data) {
     imu_data->az = (int16_t)(buffer[11] << 8 | buffer[10]);
 
 }
+
+void Imu_Process(LSM6DS3_Data_t* raw_data, Vector3D* accel_g, Vector3D* gyro_dps){
+	accel_g->x = raw_data->ax * 0.000061f;
+	accel_g->y = raw_data->ay * 0.000061f;
+	accel_g->z = raw_data->az * 0.000061f;
+	gyro_dps->x = raw_data->gx * 0.00875f;
+	gyro_dps->y = raw_data->gy * 0.00875f;
+	gyro_dps->z = raw_data->gz * 0.00875f;
+}
