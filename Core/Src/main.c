@@ -22,10 +22,11 @@
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
-#include "motor.h"
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "motor.h"
+#include "lsm6ds3.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -46,7 +47,9 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-I2C_HandleTypeDef i2c_data_bus;
+LSM6DS3_Data_t imu_data;
+Vector3D accel;
+Vector3D gyro;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -92,8 +95,10 @@ int main(void)
   MX_I2C1_Init();
   MX_TIM1_Init();
   MX_USART2_UART_Init();
-  Motors_Init();
+
   /* USER CODE BEGIN 2 */
+  Motors_Init();
+  Imu_Init(&hi2c1);
 
   /* USER CODE END 2 */
 
@@ -102,15 +107,19 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-	  Motors_Set_Speed(4100,4100);
-	  HAL_Delay(2000);
-	  Motors_Set_Speed(0,0);
-	  HAL_Delay(1000);
-	  Motors_Set_Speed(-4100,-4100);
-	  HAL_Delay(2000);
-	  Motors_Set_Speed(0,0);
-	  HAL_Delay(1000);
+
     /* USER CODE BEGIN 3 */
+	  Imu_Read(&hi2c1, &imu_data);
+	  Imu_Process(&imu_data, &accel, &gyro);
+	  HAL_Delay(10);
+//	  Motors_Set_Speed(4100,4100);
+//	  HAL_Delay(2000);
+//	  Motors_Set_Speed(0,0);
+//	  HAL_Delay(1000);
+//	  Motors_Set_Speed(-4100,-4100);
+//	  HAL_Delay(2000);
+//	  Motors_Set_Speed(0,0);
+//	  HAL_Delay(1000);
   }
   /* USER CODE END 3 */
 }
