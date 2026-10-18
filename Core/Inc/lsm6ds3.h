@@ -22,3 +22,4 @@ typedef struct  {
 int Imu_Init(I2C_HandleTypeDef* i2c_data_bus);
 void Imu_Read(I2C_HandleTypeDef* i2c_data_bus,LSM6DS3_Data_t* imu_data);
 void Imu_Process(LSM6DS3_Data_t* raw_data, Vector3D* accel_g, Vector3D* gyro_dps);
+float Imu_GetPitch(Vector3D* accel, Vector3D* gyro, float dt);

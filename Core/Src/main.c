@@ -50,6 +50,7 @@
 LSM6DS3_Data_t imu_data;
 Vector3D accel;
 Vector3D gyro;
+float robot_pitch = 0.0f;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -111,6 +112,7 @@ int main(void)
     /* USER CODE BEGIN 3 */
 	  Imu_Read(&hi2c1, &imu_data);
 	  Imu_Process(&imu_data, &accel, &gyro);
+	  robot_pitch = Imu_GetPitch(&accel, &gyro, 0.01f);
 	  HAL_Delay(10);
 //	  Motors_Set_Speed(4100,4100);
 //	  HAL_Delay(2000);
