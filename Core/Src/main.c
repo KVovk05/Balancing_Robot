@@ -27,6 +27,8 @@
 /* USER CODE BEGIN Includes */
 #include "motor.h"
 #include "lsm6ds3.h"
+#include <math.h>
+#include "pid.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -113,6 +115,10 @@ int main(void)
 	  Imu_Read(&hi2c1, &imu_data);
 	  Imu_Process(&imu_data, &accel, &gyro);
 	  robot_pitch = Imu_GetPitch(&accel, &gyro, 0.01f);
+	  if(fabs(robot_pitch - target_pitch) > 15.0f){
+		  Motors_Set_Speed(0,0);
+	  }
+
 	  HAL_Delay(10);
 //	  Motors_Set_Speed(4100,4100);
 //	  HAL_Delay(2000);

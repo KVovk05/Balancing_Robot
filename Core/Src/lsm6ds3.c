@@ -41,19 +41,18 @@ void Imu_Process(LSM6DS3_Data_t* raw_data, Vector3D* accel_g, Vector3D* gyro_dps
 	gyro_dps->z = raw_data->gz * 0.00875f;
 }
 
-// Функція повертає готовий кут нахилу в градусах
+
 float Imu_GetPitch(Vector3D* accel, Vector3D* gyro, float dt) {
-    // Статична змінна зберігає своє значення між викликами функції
+
     static float pitch_angle = 0.0f;
 
-    // Коефіцієнт фільтра: 98% довіри гіроскопу, 2% довіри акселерометру
+
     float alpha = 0.98f;
 
-    // 1. Розрахунок абсолютного кута за акселерометром
-    // atan2f працює швидше за atan2 на STM32F4 завдяки FPU. 57.29578f - це 180/PI
+
+
     float acc_angle = atan2f(accel->x, accel->z) * 57.29578f;
 
-    // 2. Злиття даних (Комплементарний фільтр)
     pitch_angle = alpha * (pitch_angle + gyro->y * dt) + (1.0f - alpha) * acc_angle;
 
     return pitch_angle;
