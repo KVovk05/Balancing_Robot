@@ -52,7 +52,10 @@
 LSM6DS3_Data_t imu_data;
 Vector3D accel;
 Vector3D gyro;
-float robot_pitch = 0.0f;
+volatile float robot_pitch = 0.0f;
+volatile float target_pitch = -4.0f;
+volatile int16_t motor_output = 0;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -100,6 +103,7 @@ int main(void)
   MX_USART2_UART_Init();
 
   /* USER CODE BEGIN 2 */
+  HAL_Delay(200);
   Motors_Init();
   Imu_Init(&hi2c1);
 
@@ -113,21 +117,49 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 	  Imu_Read(&hi2c1, &imu_data);
-	  Imu_Process(&imu_data, &accel, &gyro);
-	  robot_pitch = Imu_GetPitch(&accel, &gyro, 0.01f);
-	  if(fabs(robot_pitch - target_pitch) > 15.0f){
-		  Motors_Set_Speed(0,0);
-	  }
+	    Imu_Process(&imu_data, &accel, &gyro);
+	    robot_pitch = Imu_GetPitch(&accel, &gyro, 0.01f);
+	    float tilt_error = fabsf(robot_pitch - target_pitch);
 
-	  HAL_Delay(10);
-//	  Motors_Set_Speed(4100,4100);
-//	  HAL_Delay(2000);
-//	  Motors_Set_Speed(0,0);
-//	  HAL_Delay(1000);
-//	  Motors_Set_Speed(-4100,-4100);
-//	  HAL_Delay(2000);
-//	  Motors_Set_Speed(0,0);
-//	  HAL_Delay(1000);
+	    if (tilt_error < 15.0f)
+	    {
+	        motor_output = PID_Compute(robot_pitch, target_pitch, 0.01f);
+
+	        int16_t motor_A = motor_output;
+	        int16_t motor_B = motor_output;
+
+	        // Індивідуальна компенсація мертвої зони (стартові пороги)
+	        const int16_t deadband_A = 710; // для тугішого мотора (поріг 700)
+	        const int16_t deadband_B = 650; // для нормального мотора (поріг 640)
+
+	        if (motor_output > 0)
+	        {
+	            motor_A += deadband_A;
+	            motor_B += deadband_B;
+	        }
+	        else if (motor_output < 0)
+	        {
+	            motor_A -= deadband_A;
+	            motor_B -= deadband_B;
+	        }
+
+	        // Захист від виходу за межі таймера (ARR = 4199)
+	        if (motor_A > 4199) motor_A = 4199;
+	        if (motor_A < -4199) motor_A = -4199;
+	        if (motor_B > 4199) motor_B = 4199;
+	        if (motor_B < -4199) motor_B = -4199;
+
+	        Motors_Set_Speed(motor_A, motor_B);
+	    }
+	    else
+	    {
+	        motor_output = 0;
+	        Motors_Set_Speed(0, 0);
+	        PID_Reset();
+	    }
+
+	    HAL_Delay(10);
+	    HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
   }
   /* USER CODE END 3 */
 }
