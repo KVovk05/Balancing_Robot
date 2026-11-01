@@ -7,6 +7,6 @@ extern float Ki;
 extern float Kd;
 
 void PID_Reset(void);
-int16_t PID_Compute(float current_pitch, float target_pitch, float dt);
+int16_t PID_Compute(float current_pitch, float target_pitch, float gyro_rate, float dt);
 void clamp(float* output, float min, float max);
 #endif

@@ -53,7 +53,7 @@ LSM6DS3_Data_t imu_data;
 Vector3D accel;
 Vector3D gyro;
 volatile float robot_pitch = 0.0f;
-volatile float target_pitch = -4.0f;
+volatile float target_pitch = -1.415f;
 volatile int16_t motor_output = 0;
 
 /* USER CODE END PV */
@@ -106,60 +106,80 @@ int main(void)
   HAL_Delay(200);
   Motors_Init();
   Imu_Init(&hi2c1);
+  Imu_CalibrateGyro(&hi2c1, 500);
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  uint32_t loop_timer = HAL_GetTick();
+  static float gyro_f = 0.0f;
+  static float v_est = 0.0f;
+  const float Kv = 0.002f;
+
   while (1)
   {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  Imu_Read(&hi2c1, &imu_data);
-	    Imu_Process(&imu_data, &accel, &gyro);
-	    robot_pitch = Imu_GetPitch(&accel, &gyro, 0.01f);
-	    float tilt_error = fabsf(robot_pitch - target_pitch);
+	  // Цикл строго 5 мс
+	  if ((HAL_GetTick() - loop_timer) >= 5)
+	  {
+	      loop_timer += 5; // без накопичення похибки
 
-	    if (tilt_error < 15.0f)
-	    {
-	        motor_output = PID_Compute(robot_pitch, target_pitch, 0.01f);
+	      const float dt = 0.005f;
 
-	        int16_t motor_A = motor_output;
-	        int16_t motor_B = motor_output;
+	      Imu_Read(&hi2c1, &imu_data);
+	      Imu_Process(&imu_data, &accel, &gyro);
+	      robot_pitch = Imu_GetPitch(&accel, &gyro, dt);
 
-	        // Індивідуальна компенсація мертвої зони (стартові пороги)
-	        const int16_t deadband_A = 710; // для тугішого мотора (поріг 700)
-	        const int16_t deadband_B = 650; // для нормального мотора (поріг 640)
+	      float tilt_error = fabsf(robot_pitch - target_pitch);
 
-	        if (motor_output > 0)
-	        {
-	            motor_A += deadband_A;
-	            motor_B += deadband_B;
-	        }
-	        else if (motor_output < 0)
-	        {
-	            motor_A -= deadband_A;
-	            motor_B -= deadband_B;
-	        }
 
-	        // Захист від виходу за межі таймера (ARR = 4199)
-	        if (motor_A > 4199) motor_A = 4199;
-	        if (motor_A < -4199) motor_A = -4199;
-	        if (motor_B > 4199) motor_B = 4199;
-	        if (motor_B < -4199) motor_B = -4199;
+	      if (tilt_error < 11.0f)
+	      {
+	    	  gyro_f += 0.3f * (gyro.y - gyro_f);
+	    	  v_est += 0.02f * ((float)motor_output - v_est);
 
-	        Motors_Set_Speed(motor_A, motor_B);
-	    }
-	    else
-	    {
-	        motor_output = 0;
-	        Motors_Set_Speed(0, 0);
-	        PID_Reset();
-	    }
+	    	    // знак перевір експериментом
+	    	  float adj = Kv * v_est;
+	    	  if (adj > 3.0f)  adj = 3.0f;
+	    	  if (adj < -3.0f) adj = -3.0f;
 
-	    HAL_Delay(10);
-	    HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+	    	  motor_output = PID_Compute(robot_pitch, target_pitch + adj, gyro_f, dt);
+
+	          const float deadband_A = 200.0f;
+	          const float deadband_B = 185.0f;
+	          const float ramp = 1200.0f;
+
+	          float out = (float)motor_output;
+	          float scale = fabsf(out) / ramp;
+	          if (scale > 1.0f) scale = 1.0f;
+	          float sgn = (out > 0.0f) ? 1.0f : ((out < 0.0f) ? -1.0f : 0.0f);
+
+	          int32_t motor_A = (int32_t)(out + sgn * deadband_A * scale);
+	          int32_t motor_B = (int32_t)(out + sgn * deadband_B * scale);
+
+
+	          if (motor_A > 4199) motor_A = 4199;
+	          if (motor_A < -4199) motor_A = -4199;
+	          if (motor_B > 4199) motor_B = 4199;
+	          if (motor_B < -4199) motor_B = -4199;
+
+	          Motors_Set_Speed((int16_t)motor_A, (int16_t)motor_B);
+	      }
+	      else
+	      {
+	    	  v_est = 0.0f;
+	    	  gyro_f = 0.0f;
+	          motor_output = 0;
+	          Motors_Set_Speed(0, 0);
+	          PID_Reset();
+	      }
+
+
+	      HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+	  }
   }
   /* USER CODE END 3 */
 }
