@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="assets/robot_assembled.jpg" alt="Assembled Self-Balancing Robot" width="500">
+  <img src="Assets/robot_assembled.jpg" alt="Assembled Self-Balancing Robot" width="500">
   <p><em>Assembled two-wheeled self-balancing robot platform</em></p>
 </div>
 ## 🔌 Hardware & Schematics
