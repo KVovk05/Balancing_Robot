@@ -1,15 +1,15 @@
 ## 🔌 Hardware & Schematics
 The hardware is designed around an STM32 microcontroller and custom peripherals. Below is the schematic overview designed in KiCad:
 
-![KiCad Schematic](assets/scheme_robot.svg)
+![KiCad Schematic](Assets/scheme_robot.svg)
 
 ### 🛠️ Hardware Assembly & Soldering
 Close-up views of the soldered sensor (IMU) and motor driver modules:
 
 | Module | Front Side | Rear Side |
 | :--- | :---: | :---: |
-| **IMU Module** | <img src="assets/IMU_front_soldering.jpg" width="320"> | <img src="assets/IMU_rear_soldering.jpg" width="320"> |
-| **Motor Driver** | <img src="assets/driver_front_soldering.jpg" width="320"> | <img src="assets/driver_rear_soldering.jpg" width="320"> |
+| **IMU Module** | <img src="Assets/IMU_front_soldering.jpg" width="320"> | <img src="Assets/IMU_rear_soldering.jpg" width="320"> |
+| **Motor Driver** | <img src="Assets/driver_front_soldering.jpg" width="320"> | <img src="Assets/driver_rear_soldering.jpg" width="320"> |
 
 ---
 
