@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="assets/robot_assembled.jpg" alt="Assembled Self-Balancing Robot" width="500">
+  <p><em>Assembled two-wheeled self-balancing robot platform</em></p>
+</div>
 ## 🔌 Hardware & Schematics
 The hardware is designed around an STM32 microcontroller and custom peripherals. Below is the schematic overview designed in KiCad:
 
