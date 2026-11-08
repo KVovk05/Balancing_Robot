@@ -122,7 +122,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  // Цикл строго 5 мс
+
 	  if ((HAL_GetTick() - loop_timer) >= 5)
 	  {
 	      loop_timer += 5; // без накопичення похибки
@@ -141,7 +141,7 @@ int main(void)
 	    	  gyro_f += 0.3f * (gyro.y - gyro_f);
 	    	  v_est += 0.02f * ((float)motor_output - v_est);
 
-	    	    // знак перевір експериментом
+
 	    	  float adj = Kv * v_est;
 	    	  if (adj > 3.0f)  adj = 3.0f;
 	    	  if (adj < -3.0f) adj = -3.0f;
